@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Covalent Bond Simulation</title>
+    <style>
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background: white;
+        }
+        .container {
+            position: relative;
+            width: 800px;
+            height: 400px;
+        }
+        .atom {
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            user-select: none;
+        }
+        #gif1 {
+            left: 650px; /* 600 px sağda olacak şekilde ayarladık */
+            bottom: 50px;
+            cursor: grab;
+        }
+        #gif2 {
+            left: 50px; /* 600 px aralık için başlangıç konumu */
+            bottom: 50px;
+        }
+        .dot {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            background: black;
+            border-radius: 50%;
+            z-index: 10; /* Noktaların üstte görünmesi için */
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <img id="gif2" class="atom" src="https://smkovalentbagx.vercel.app/gif2.gif'">
+    <img id="gif1" class="atom" src="https://smkovalentbagx.vercel.app/gif1.gif'">
+</div>
+
+<script>
+    let gif1 = document.getElementById("gif1");
+    let container = document.querySelector(".container");
+    let initialX = 650; // gif1'in başlangıç konumu
+    let minX = 50; // gif2'nin konumu
+    let isDragging = false;
+
+    gif1.addEventListener("mousedown", (event) => {
+        isDragging = true;
+        let shiftX = event.clientX - gif1.getBoundingClientRect().left;
+
+        const onMouseMove = (event) => {
+            if (!isDragging) return;
+            let newX = event.clientX - shiftX - container.getBoundingClientRect().left;
+
+            // Mesafe kısıtlaması
+            if (newX >= minX + 100 && newX <= initialX) { // 100 px genişlik
+                gif1.style.left = newX + "px";
+                
+                // Eğri boyunca noktaları oluştur
+                let { x, y } = calculateCurve(newX);
+                createDot(x, y);
+            }
+        };
+
+        const onMouseUp = () => {
+            isDragging = false;
+            document.removeEventListener("mousemove", onMouseMove);
+            document.removeEventListener("mouseup", onMouseUp);
+        };
+
+        document.addEventListener("mousemove", onMouseMove);
+        document.addEventListener("mouseup", onMouseUp);
+    });
+
+    gif1.ondragstart = () => false;
+
+    function calculateCurve(x) {
+        let baseY = 300; // Başlangıç yüksekliği
+        let flatLength = 100; // Düz gidiş (100 px)
+        let heightFactor = 30; // Yükselme yüksekliği (daha yayvan)
+
+        // İlk 4 cm düz gidecek
+        if (x > initialX - flatLength) {
+            return { x, y: baseY }; // Düz gidiş
+        }
+
+        // Düz gidişten sonra yukarı yükselen eğri
+        let normalizedX = x - (initialX - flatLength);
+        let y = baseY - heightFactor * (normalizedX / 100) * (normalizedX / 100); // Yayvan parabolik eğri
+        return { x, y };
+    }
+
+    function createDot(x, y) {
+        let dot = document.createElement("div");
+        dot.className = "dot";
+        dot.style.left = x + "px";
+        dot.style.top = (y - 6) + "px"; // GIF'in üstünde görünmesi için
+        container.appendChild(dot);
+    }
+</script>
+
+</body>
+</html>

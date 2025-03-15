@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Before After Slider</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@100&display=swap');
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: white; /* Arka plan beyaz */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh; /* Sayfanın yüksekliği */
+            font-family: 'Roboto', sans-serif;
+            user-select: none; /* Metin seçimini engeller */
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1200px; /* Sayfanın genişliği arttırıldı */
+            margin: 30px auto;
+            position: relative; /* İç öğelerin konumlandırılması için */
+        }
+
+        #before-after-slider {
+            width: 100%;
+            position: relative;
+            border: 3px solid white;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        img {
+            width: 100%;
+            display: block;
+            pointer-events: none; /* After resminin tıklanmasını engeller */
+        }
+
+        /* Before (Beyaz Alan) */
+        #before-image {
+            position: absolute;
+            height: 100%;
+            width: 100%;
+            top: 0;
+            left: 0;
+            background: white;
+            z-index: 2;
+            overflow: hidden;
+            transition: visibility 0s linear 0.3s;
+        }
+
+        #before-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            background: white; /* Beyaz görünüm */
+        }
+
+        #resizer {
+            position: relative;
+            display: flex;
+            align-items: center;
+            z-index: 5;
+            top: -305px;
+            left: 50%;
+            height: 100%;
+            width: 4px; /* Ayracın genişliği */
+            cursor: ew-resize; /* Kaydırma simgesi */
+            background: transparent; /* Ayracın arka planı şeffaf */
+			
+        }
+
+        /* Ortadaki ikon yerine gif1 - Boyut %400 büyütüldü */
+        #resizer:after {
+            content: "";
+            position: absolute;
+            left: -22px;
+            width: 160px; /* 40px * 4 = 160px */
+            height: 160px; /* 40px * 4 = 160px */
+            background: url('https://smkovalentbagx.vercel.app/gif1.gif') center/cover no-repeat;
+            border-radius: 50%;
+			padding-top:"255px";
+        }
+
+        /* gif2'nin stili */
+        #gif2 {
+            position: absolute;
+            width: 165px; /* Boyutları ayarlayın */
+            height: 160px;
+            background: url('https://smkovalentbagx.vercel.app/gif1.gif') center/cover no-repeat; /* gif2'nin arka planı */
+            border-radius: 50%;
+            z-index: 9999; /* En üstte görünmesi için z-index ayarlandı */
+            left: calc(50% - 750px); /* 750px'ye 100px eklenerek kaydırıldı */
+            top: calc(50% - 80px); /* Dikeyde ortalanacak şekilde ayarlandı */
+            transition: opacity 0.3s; /* Kaybolma efekti için geçiş */
+        }
+
+        /* Mesafe gösterimi için stil */
+        #distance {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 24px;
+            font-weight: bold;
+            z-index: 10000;
+        }
+
+        @media (max-width: 767px) {
+            .container {
+                width: 100%;
+                padding: 0 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+        <div id="gif2"></div> <!-- gif2 burada before-after-slider içinde yer alıyor -->
+    <div id="before-after-slider">
+
+        <div id="before-image"></div>
+
+        <!-- After (Gerçek Görsel) -->
+        <img src="pavurt4.png" alt="After Image" />
+
+        <div id="resizer"></div>
+        <div id="distance">0 px</div> <!-- Mesafe gösterimi için element -->
+    </div>
+</div>
+
+<script>
+    const slider = document.getElementById('before-after-slider');
+    const before = document.getElementById('before-image');
+    const resizer = document.getElementById('resizer');
+    const gif2 = document.getElementById('gif2');
+    const distanceDisplay = document.getElementById('distance');
+
+    let active = false;
+
+    resizer.addEventListener('mousedown', function() {
+        active = true;
+    });
+
+    document.body.addEventListener('mouseup', function() {
+        active = false;
+    });
+
+    document.body.addEventListener('mouseleave', function() {
+        active = false;
+    });
+
+    document.body.addEventListener('mousemove', function(e) {
+        if (!active) return;
+        let x = e.pageX - slider.getBoundingClientRect().left;
+        slideIt(x);
+        pauseEvent(e);
+        updateDistance(x); // Mesafeyi güncelle
+    });
+
+    resizer.addEventListener('touchstart', function() {
+        active = true;
+    });
+
+    document.body.addEventListener('touchend', function() {
+        active = false;
+    });
+
+    document.body.addEventListener('touchcancel', function() {
+        active = false;
+    });
+
+    document.body.addEventListener('touchmove', function(e) {
+        if (!active) return;
+        let x = e.changedTouches[0].pageX - slider.getBoundingClientRect().left;
+        slideIt(x);
+        pauseEvent(e);
+        updateDistance(x); // Mesafeyi güncelle
+    });
+
+    function slideIt(x) {
+        let transform = Math.max(0, Math.min(x, slider.offsetWidth));
+        before.style.width = transform + "px";
+        resizer.style.left = transform + "px";
+
+        // Eğer kaydırıcı tamamen sola çekilmişse, before alanını gizle
+        if (transform <= 5) {
+            before.style.width = "0"; // Before görünümünü sıfırla
+        } else {
+            before.style.width = transform + "px"; // Before görünümünü göster
+        }
+    }
+
+    function updateDistance(x) {
+        const gif1Position = x; // gif1'in (resizer) pozisyonu
+        const gif2Position = gif2.getBoundingClientRect().left; // gif2'nin pozisyonunu al
+
+        // Mesafeyi hesapla
+        const distance = Math.abs(gif1Position - gif2Position);
+        distanceDisplay.textContent = Math.round(distance) + " px"; // Mesafeyi güncelle
+
+        // Eğer mesafe 500px'den fakaysa
+        if (distance > 417) {
+        gif2.style.height = "165px"; 
+gif2.style.width = "165x";  
+
+gif2.style.backgroundImage = "url('gif2.gif";
+
+
+
+
+        } else {
+            gif2.style.backgroundImage = "url('gif1.gif')"; // orijinal gif2Position        
+	        gif2.style.height = "165px"; 
+gif2.style.width = "165px"; 
+        }
+    }
+
+
+
+
+    function pauseEvent(e) {
+        if (e.stopPropagation) e.stopPropagation();
+        if (e.preventDefault) e.preventDefault();
+        e.cancelBubble = true;
+        e.returnValue = false;
+        return false;
+    }
+	
+</script>
+
+</body>
+</html
+
+  
+  
+  
